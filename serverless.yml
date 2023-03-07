@@ -1,0 +1,39 @@
+service: my-service-guest
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: python3.9
+  memorySize: 512
+  logRetentionInDays: 7
+  region: ap-southeast-1
+  deploymentMethod: direct
+  httpApi:
+    id: ${param:apiId}
+    name: cmy-enterprise-guest
+
+params:
+  dev:
+    apiId: 118jgopl80
+  stage:
+    apiId: j2esslj10j
+  prod:
+    apiId: 2fdjefybnl
+
+package:
+  individually: true
+  patterns:
+    - '!**'
+
+functions:
+  hello:
+    handler: functions/hello/handler.handle
+    package:
+      patterns:
+        - 'functions/hello/**'
+    layers:
+      - arn:aws:lambda:${aws:region}:${aws:accountId}:layer:${sls:stage}-my-service:1
+    events:
+      - httpApi:
+          method: GET
+          path: /hello
